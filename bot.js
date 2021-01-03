@@ -6,7 +6,7 @@ const MongoClient = require('mongodb').MongoClient;
 let prefix = 'Hidan, ';
 let logChannelID;
 const channelsToWatch = [];
-const dbClient = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true });
+const dbClient = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 function handleDbError(error, replyChannel) {
   if(replyChannel) replyChannel.send(error.message);
