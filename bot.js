@@ -63,13 +63,8 @@ function listWatched(content, message) {
           return client.channels.fetch(channelID);
         })
       )
-      
-      let response = channels.join(", ").split('');
-      const lastComma = response.lastIndexOf(',');
-      if(lastComma !== -1) response = response.splice(lastComma, 1, " and");
-      response = response.join('') + ` ${channels.length === 1 ? 'is' : 'are'} being watched`;
 
-      message.reply(response)
+      message.reply(`Channels being watched: ${channels.join(", ")}`)
     } catch(error) {
       message.reply(error.message);
     }
