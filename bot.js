@@ -154,9 +154,6 @@ client.on('message', (message) => {
 client.on('voiceStateUpdate', async (oldState, newState) => {
   const channel = newState.channel || oldState.channel;
 
-  console.log('oldState', oldState);
-  console.log('newState', newState);
-
   if(channelsToWatch.includes(channel.id)) {
     if(channel.full) {
       logChannelMessage(`${channel} is full, hiding it`)
