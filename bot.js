@@ -25,7 +25,7 @@ function checkFor(text, messageContent, callback, trim = true) {
 function addChannel(content, message) {
   checkFor('watch', content, async (channelID) => {
     try {
-      const channel = await client.channels.fetch(channelID);
+      const channel = await message.guild.channels.resolve(channelID);
       if(channel.isText()) throw Error('Text channels not allowed');
       if(channelsToWatch.includes(channel.id)) throw Error('Channel already being watched')
 
@@ -40,7 +40,7 @@ function addChannel(content, message) {
 function removeChannel(content, message) {
   checkFor('stop watching', content, async (channelID) => {
     try {
-      const channel = await client.channels.fetch(channelID);
+      const channel = await message.guild.channels.resolve(channelID);
       if(channel.isText()) throw Error('Text channels not allowed');
       if(!channelsToWatch.includes(channel.id)) throw Error('Channel not being watched')
 
@@ -59,8 +59,10 @@ function listWatched(content, message) {
       if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
 
       const channels = await Promise.all(
-        channelsToWatch.map((channelID) => {
-          return client.channels.fetch(channelID);
+        channelsToWatch.filter((channelID) => {
+          return message.guild.channels.cache.has(channelID)
+        }).map((channelID) => {
+          return message.guild.channels.resolve(channelID);
         })
       )
 
@@ -74,7 +76,7 @@ function listWatched(content, message) {
 function setLog(content, message) {
   checkFor('set log channel', content, async (channelID) => {
     try {
-      const channel = await client.channels.fetch(channelID);
+      const channel = await message.guild.channels.resolve(channelID);
       if(!channel.isText()) throw Error('Voice channels not allowed');
 
       logChannel = channel.id;
