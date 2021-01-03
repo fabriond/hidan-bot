@@ -176,4 +176,10 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   }
 })
 
+client.on('ready', () => {
+  client.user.setActivity(`\`${prefix}\``, {
+    type: 'LISTENING'
+  })
+})
+
 client.login(process.env.CLIENT_SECRET);
