@@ -65,7 +65,7 @@ function listWatched(content, message) {
           return message.guild.channels.resolve(channelID);
         })
       )
-
+      console.log(channels);
       message.channel.send(`Channels being watched: ${channels.join(", ")}`)
     } catch(error) {
       message.channel.send(error.message);
