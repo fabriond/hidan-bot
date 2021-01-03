@@ -99,7 +99,7 @@ function listWatched(content, message) {
         const channelsToWatch = await getWatchedIDs(message.guild.id);
         console.log(channelsToWatch);
 
-        if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
+        if(channelsToWatch.length === 0) return message.channel.send('No channels are currently being watched');
     
         const channels = await Promise.all(
           channelsToWatch.map((channelID) => {
