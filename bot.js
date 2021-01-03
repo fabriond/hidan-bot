@@ -26,6 +26,7 @@ function addChannel(content, message) {
   checkFor('watch', content, async (channelID) => {
     try {
       const channel = await message.guild.channels.resolve(channelID);
+      if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
       if(channelsToWatch.includes(channel.id)) throw Error('Channel already being watched')
 
@@ -41,6 +42,7 @@ function removeChannel(content, message) {
   checkFor('stop watching', content, async (channelID) => {
     try {
       const channel = await message.guild.channels.resolve(channelID);
+      if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
       if(!channelsToWatch.includes(channel.id)) throw Error('Channel not being watched')
 
@@ -59,9 +61,7 @@ function listWatched(content, message) {
       if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
 
       const channels = await Promise.all(
-        channelsToWatch.filter((channelID) => {
-          return message.guild.channels.cache.has(channelID)
-        }).map((channelID) => {
+        channelsToWatch.map((channelID) => {
           return message.guild.channels.resolve(channelID);
         })
       )
