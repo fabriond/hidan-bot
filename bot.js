@@ -131,6 +131,15 @@ client.on('message', (message) => {
           case content.startsWith('reset prefix'):
             return resetPrefix(content, message);
 
+          case content.startsWith('help'):
+            return message.channel.send("\
+              List of commands: \n\
+              \n\
+              \`watch <channel_id>\` - adds voice channel to the watch list, making them private as soon as they're full and visible otherwise\n\
+              \`stop watching <channel_id>\` - removes voice channel from the watch list\n\
+              \`list watched\` - lists all watched channels\n\
+            ")
+
           default:
             return message.channel.send(`Command \`${content}\` unavailable`);
         }
