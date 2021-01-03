@@ -15,8 +15,8 @@ function handleDbError(error, replyChannel) {
   throw error;
 }
 
-function getWatchlist(guild_id) {
-  return dbClient.db().collection(`watchlist-${guild_id}`);
+function getWatchlist(dbClient, guildID) {
+  return dbClient.db().collection(`watchlist-${guildID}`);
 }
 
 async function logChannelMessage(content) {
@@ -42,11 +42,11 @@ function addChannel(content, message) {
       if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
 
-      await dbClient.connect(async err => {
-        if(err) handleDbError(err, message.channel);
+      await dbClient.connect(async (error, dbClient) => {
+        if(error) handleDbError(error, message.channel);
         
         try{
-          await getWatchlist(message.guild.id).insertOne({
+          await getWatchlist(dbClient, message.guild.id).insertOne({
             _id: channel.id
           })
           
@@ -70,8 +70,8 @@ function removeChannel(content, message) {
       if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
 
-      await dbClient.connect(async err => {
-        if(err) handleDbError(err, message.channel);
+      await dbClient.connect(async (error, dbClient) => {
+        if(error) handleDbError(error, message.channel);
         
         try {
           await getWatchlist(message.guild.id).deleteOne({
@@ -190,8 +190,8 @@ client.on('message', (message) => {
 client.on('voiceStateUpdate', async (oldState, newState) => {
   const channel = newState.channel || oldState.channel;
 
-  await dbClient.connect(async err => {
-    if(err) handleDbError(err);
+  await dbClient.connect(async (error, dbClient) => {
+    if(error) handleDbError(error);
     try{
       const isChannelWatched = await getWatchlist(channel.guild.id).indexExists(channel.id);
 
