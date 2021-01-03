@@ -85,15 +85,16 @@ client.on('message', (message) => {
 })
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-  const channel = newState.channel;
+  const channel = newState.channel || oldState.channel;
+
   let textChannel;
   try {
     textChannel = await client.channels.fetch(logChannel);
-  } catch(error) {
-    message.reply(error.message)
-  }
-  if(textChannel) textChannel.send(`${oldState}, ${newState}`)
-  console.log(oldState, newState)
+  } catch(error) {}
+
+  console.log('oldState', oldState);
+  console.log('newState', newState);
+
   if(channelsToWatch.includes(channel.id)) {
     if(channel.full) {
       if(textChannel) textChannel.send(`${channel} is full, hiding it`)
