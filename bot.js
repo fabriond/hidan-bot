@@ -90,7 +90,8 @@ function setLog(content, message) {
 function setPrefix(content, message) {
   checkFor('set prefix ', content, async (newPrefix) => {
     try {
-      if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters');
+      if(newPrefix.length < 3) throw Error('Prefix can\'t be under 3 characters long');
+      else if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters long');
 
       prefix = newPrefix;
       message.channel.send(`Set prefix to: \`${newPrefix}\``)
