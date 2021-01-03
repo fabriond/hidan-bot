@@ -16,7 +16,7 @@ function handleDbError(error, replyChannel) {
 }
 
 function getWatchlist(connectedClient, guildID) {
-  return connectedClient.db().collection(`watchlist-${guildID}`);
+  return dbClient.db().collection(`watchlist-${guildID}`);
 }
 
 async function logChannelMessage(content) {
