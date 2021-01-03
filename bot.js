@@ -42,8 +42,8 @@ function addChannel(content, message) {
       if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
 
-      // await dbClient.connect(async (error, connectedClient) => {
-        // if(error) handleDbError(error, message.channel);
+      await dbClient.connect(async (error) => {
+        if(error) handleDbError(error, message.channel);
         
         try{
           await getWatchlist(message.guild.id).insertOne({
@@ -56,7 +56,7 @@ function addChannel(content, message) {
         } finally {
           // connectedClient.close();
         }
-      // });      
+      });      
     } catch(error) {
       message.channel.send(error.message);
     }
@@ -70,8 +70,8 @@ function removeChannel(content, message) {
       if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
 
-      // await dbClient.connect(async (error, connectedClient) => {
-        // if(error) handleDbError(error, message.channel);
+      await dbClient.connect(async (error) => {
+        if(error) handleDbError(error, message.channel);
         
         try {
           await getWatchlist(message.guild.id).deleteOne({
@@ -84,7 +84,7 @@ function removeChannel(content, message) {
         } finally {
           // connectedClient.close();
         }
-      // }); 
+      }); 
     } catch(error) {
       message.channel.send(error.message);
     }
@@ -190,8 +190,8 @@ client.on('message', (message) => {
 client.on('voiceStateUpdate', async (oldState, newState) => {
   const channel = newState.channel || oldState.channel;
 
-  // await dbClient.connect(async (error, connectedClient) => {
-  //   if(error) handleDbError(error);
+  await dbClient.connect(async (error) => {
+    if(error) handleDbError(error);
     try{
       const isChannelWatched = await getWatchlist(channel.guild.id).indexExists(channel.id);
 
@@ -217,8 +217,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     } finally {
       // connectedClient.close();
     }
-    
-  // });
+  });
 })
 
 client.on('ready', () => {
