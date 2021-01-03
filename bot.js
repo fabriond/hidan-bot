@@ -59,7 +59,7 @@ function listWatched(content, message) {
       if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
 
       const channels = await Promise.all(
-        channelsToWatch.map(() => {
+        channelsToWatch.map((channelID) => {
           return client.channels.fetch(channelID);
         })
       )
