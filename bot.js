@@ -33,7 +33,7 @@ function setPrefix(content, message) {
       if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters');
 
       prefix = newPrefix;
-      message.reply(`Set prefix to: ${newPrefix}`)
+      message.reply(`Set prefix to: \`${newPrefix}\``)
     } catch(error) {
       message.reply(error.message);
     }
