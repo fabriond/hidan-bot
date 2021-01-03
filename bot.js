@@ -6,7 +6,7 @@ let prefix = 'Hidan, ';
 let logChannelID;
 const channelsToWatch = [];
 
-function logChannelMessage(content) {
+async function logChannelMessage(content) {
   let logChannel;
   try {
     logChannel = await client.channels.fetch(logChannelID);
