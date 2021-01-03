@@ -84,7 +84,7 @@ client.on('message', (message) => {
   }
 })
 
-client.on('voiceStateUpdate', (oldState, newState) => {
+client.on('voiceStateUpdate', async (oldState, newState) => {
   const channel = newState.channel;
   let textChannel;
   try {
