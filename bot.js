@@ -5,7 +5,6 @@ const MongoClient = require('mongodb').MongoClient;
 
 let prefix = 'Hidan, ';
 let logChannelID;
-const channelsToWatch = [];
 const dbClient = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 function handleDbError(error, replyChannel) {
@@ -53,8 +52,6 @@ function addChannel(content, message) {
           message.channel.send(`Added channel ${channel.toString()} to the watch list`);
         } catch(error) {
           handleDbError(error, message.channel)
-        } finally {
-          // connectedClient.close();
         }
       });      
     } catch(error) {
@@ -81,8 +78,6 @@ function removeChannel(content, message) {
           message.channel.send(`Removed channel ${channel.toString()} from the watch list`);
         } catch(error) {
           handleDbError(error, message.channel);
-        } finally {
-          // connectedClient.close();
         }
       }); 
     } catch(error) {
@@ -94,15 +89,21 @@ function removeChannel(content, message) {
 function listWatched(content, message) {
   checkFor('list watched', content, async () => {
     try {
-      if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
+      await dbClient.connect(async (error) => {
+        if(error) handleDbError(error);
+        
+        const channelsToWatch = await getWatchlist(message.guild.id).listIndexes().toArray();
 
-      const channels = await Promise.all(
-        channelsToWatch.map((channelID) => {
-          return message.guild.channels.resolve(channelID);
-        })
-      );
-
-      message.channel.send(`Channels being watched: ${channels.filter((channel) => !!channel).join(", ")}`)
+        if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
+    
+        const channels = await Promise.all(
+          channelsToWatch.map((channelID) => {
+            return message.guild.channels.resolve(channelID);
+          })
+        );
+  
+        message.channel.send(`Channels being watched: ${channels.filter((channel) => !!channel).join(", ")}`)
+      });
     } catch(error) {
       message.channel.send(error.message);
     }
@@ -192,30 +193,27 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
   await dbClient.connect(async (error) => {
     if(error) handleDbError(error);
-    try{
-      const isChannelWatched = await getWatchlist(channel.guild.id).indexExists(channel.id);
+    
+    const isChannelWatched = await getWatchlist(channel.guild.id).indexExists(channel.id);
 
-      if(isChannelWatched) {
-        if(channel.full) {
-          logChannelMessage(`${channel} is full, hiding it`)
-          channel.overwritePermissions([
-            {
-              id: channel.guild.roles.everyone,
-              deny: ['VIEW_CHANNEL'],
-            }
-          ], 'Channel is full');
-        } else {
-          logChannelMessage(`${channel} is not full, displaying it`)
-          channel.overwritePermissions([
-            {
-              id: channel.guild.roles.everyone,
-              allow: ['VIEW_CHANNEL'],
-            }
-          ], 'Channel is not full');
-        }
+    if(isChannelWatched) {
+      if(channel.full) {
+        logChannelMessage(`${channel} is full, hiding it`)
+        channel.overwritePermissions([
+          {
+            id: channel.guild.roles.everyone,
+            deny: ['VIEW_CHANNEL'],
+          }
+        ], 'Channel is full');
+      } else {
+        logChannelMessage(`${channel} is not full, displaying it`)
+        channel.overwritePermissions([
+          {
+            id: channel.guild.roles.everyone,
+            allow: ['VIEW_CHANNEL'],
+          }
+        ], 'Channel is not full');
       }
-    } finally {
-      // connectedClient.close();
     }
   });
 })
