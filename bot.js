@@ -15,7 +15,7 @@ function handleDbError(error, replyChannel) {
   throw error;
 }
 
-function getWatchlist(connectedClient, guildID) {
+function getWatchlist(guildID) {
   return dbClient.db().collection(`watchlist-${guildID}`);
 }
 
@@ -42,11 +42,11 @@ function addChannel(content, message) {
       if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
 
-      await dbClient.connect(async (error, connectedClient) => {
-        if(error) handleDbError(error, message.channel);
+      // await dbClient.connect(async (error, connectedClient) => {
+        // if(error) handleDbError(error, message.channel);
         
         try{
-          await getWatchlist(connectedClient, message.guild.id).insertOne({
+          await getWatchlist(message.guild.id).insertOne({
             _id: channel.id
           })
           
@@ -54,9 +54,9 @@ function addChannel(content, message) {
         } catch(error) {
           handleDbError(error, message.channel)
         } finally {
-          connectedClient.close();
+          // connectedClient.close();
         }
-      });      
+      // });      
     } catch(error) {
       message.channel.send(error.message);
     }
@@ -70,11 +70,11 @@ function removeChannel(content, message) {
       if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
 
-      await dbClient.connect(async (error, connectedClient) => {
-        if(error) handleDbError(error, message.channel);
+      // await dbClient.connect(async (error, connectedClient) => {
+        // if(error) handleDbError(error, message.channel);
         
         try {
-          await getWatchlist(connectedClient, message.guild.id).deleteOne({
+          await getWatchlist(message.guild.id).deleteOne({
             _id: channel.id
           })
            
@@ -82,9 +82,9 @@ function removeChannel(content, message) {
         } catch(error) {
           handleDbError(error, message.channel);
         } finally {
-          connectedClient.close();
+          // connectedClient.close();
         }
-      });      
+      // }); 
     } catch(error) {
       message.channel.send(error.message);
     }
@@ -190,10 +190,10 @@ client.on('message', (message) => {
 client.on('voiceStateUpdate', async (oldState, newState) => {
   const channel = newState.channel || oldState.channel;
 
-  await dbClient.connect(async (error, connectedClient) => {
-    if(error) handleDbError(error);
+  // await dbClient.connect(async (error, connectedClient) => {
+  //   if(error) handleDbError(error);
     try{
-      const isChannelWatched = await getWatchlist(connectedClient, channel.guild.id).indexExists(channel.id);
+      const isChannelWatched = await getWatchlist(channel.guild.id).indexExists(channel.id);
 
       if(isChannelWatched) {
         if(channel.full) {
@@ -215,10 +215,10 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         }
       }
     } finally {
-      connectedClient.close();
+      // connectedClient.close();
     }
     
-  });
+  // });
 })
 
 client.on('ready', () => {
