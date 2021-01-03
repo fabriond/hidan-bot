@@ -1,10 +1,23 @@
 const Discord = require('discord.js');
 
 const client = new Discord.Client();
+const MongoClient = require('mongodb').MongoClient;
 
 let prefix = 'Hidan, ';
 let logChannelID;
 const channelsToWatch = [];
+const dbClient = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true });
+
+function handleDbError(error, replyChannel) {
+  if(replyChannel) replyChannel.send(error.message);
+  else console.log(error.message);
+
+  throw error;
+}
+
+function getWatchlist(guild_id) {
+  return dbClient.db().collection(`watchlist-${guild_id}`);
+}
 
 async function logChannelMessage(content) {
   let logChannel;
@@ -28,10 +41,22 @@ function addChannel(content, message) {
       const channel = await message.guild.channels.resolve(channelID);
       if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
-      if(channelsToWatch.includes(channel.id)) throw Error('Channel already being watched')
 
-      channelsToWatch.push(channel.id);
-      message.channel.send(`Added channel ${channel.toString()} to the watch list`);
+      await dbClient.connect(async err => {
+        if(err) handleDbError(err, message.channel);
+        
+        try{
+          await getWatchlist(message.guild.id).insertOne({
+            _id: channel.id
+          })
+          
+          message.channel.send(`Added channel ${channel.toString()} to the watch list`);
+        } catch(error) {
+          handleDbError(error, message.channel)
+        }
+
+        dbClient.close();
+      });      
     } catch(error) {
       message.channel.send(error.message);
     }
@@ -44,11 +69,22 @@ function removeChannel(content, message) {
       const channel = await message.guild.channels.resolve(channelID);
       if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
-      if(!channelsToWatch.includes(channel.id)) throw Error('Channel not being watched')
 
-      const removeIndex = channelsToWatch.indexOf(channel.id);
-      channelsToWatch.splice(removeIndex, 1)
-      message.channel.send(`Removed channel ${channel.toString()} from the watch list`);
+      dbClient.connect(async err => {
+        if(err) handleDbError(err, message.channel);
+        
+        try {
+          await getWatchlist(message.guild.id).deleteOne({
+            _id: channel.id
+          })
+           
+          message.channel.send(`Removed channel ${channel.toString()} from the watch list`);
+        } catch(error) {
+          handleDbError(error, message.channel);
+        }
+
+        dbClient.close();
+      });      
     } catch(error) {
       message.channel.send(error.message);
     }
@@ -154,25 +190,35 @@ client.on('message', (message) => {
 client.on('voiceStateUpdate', async (oldState, newState) => {
   const channel = newState.channel || oldState.channel;
 
-  if(channelsToWatch.includes(channel.id)) {
-    if(channel.full) {
-      logChannelMessage(`${channel} is full, hiding it`)
-      channel.overwritePermissions([
-        {
-          id: channel.guild.roles.everyone,
-          deny: ['VIEW_CHANNEL'],
+  dbClient.connect(async err => {
+    if(err) handleDbError(err);
+    try{
+      const isChannelWatched = await getWatchlist(channel.guild.id).indexExists(channel.id);
+
+      if(isChannelWatched) {
+        if(channel.full) {
+          logChannelMessage(`${channel} is full, hiding it`)
+          channel.overwritePermissions([
+            {
+              id: channel.guild.roles.everyone,
+              deny: ['VIEW_CHANNEL'],
+            }
+          ], 'Channel is full');
+        } else {
+          logChannelMessage(`${channel} is not full, displaying it`)
+          channel.overwritePermissions([
+            {
+              id: channel.guild.roles.everyone,
+              allow: ['VIEW_CHANNEL'],
+            }
+          ], 'Channel is not full');
         }
-      ], 'Channel is full');
-    } else {
-      logChannelMessage(`${channel} is not full, displaying it`)
-      channel.overwritePermissions([
-        {
-          id: channel.guild.roles.everyone,
-          allow: ['VIEW_CHANNEL'],
-        }
-      ], 'Channel is not full');
+      }
+    } finally {
+      dbClient.close();
     }
-  }
+    
+  });
 })
 
 client.on('ready', () => {
