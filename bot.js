@@ -38,7 +38,7 @@ function addChannel(content, message) {
 }
 
 function removeChannel(content, message) {
-  checkFor('stop watching', content, async (channelID) => {
+  checkFor('stopwatching', content, async (channelID) => {
     try {
       const channel = await client.channels.fetch(channelID);
       if(channel.isText()) throw Error('Text channels not allowed');
@@ -54,7 +54,7 @@ function removeChannel(content, message) {
 }
 
 function listWatched(content, message) {
-  checkFor('list watched', content, async () => {
+  checkFor('listwatched', content, async () => {
     try {
       if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
 
@@ -77,7 +77,7 @@ function listWatched(content, message) {
 }
 
 function setLog(content, message) {
-  checkFor('set log', content, async (channelID) => {
+  checkFor('setlog', content, async (channelID) => {
     try {
       const channel = await client.channels.fetch(channelID);
       if(!channel.isText()) throw Error('Voice channels not allowed');
@@ -91,7 +91,7 @@ function setLog(content, message) {
 }
 
 function setPrefix(content, message) {
-  checkFor('set prefix ', content, async (newPrefix) => {
+  checkFor('setprefix ', content, async (newPrefix) => {
     try {
       if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters');
 
@@ -104,7 +104,7 @@ function setPrefix(content, message) {
 }
 
 function resetPrefix(content, message) {
-  checkFor('reset prefix', content, async () => {
+  checkFor('resetprefix', content, async () => {
     setPrefix('setprefix Hidan, ', message);
   })
 }
@@ -117,15 +117,15 @@ client.on('message', (message) => {
         switch(content.split(" ", 2)[0]) {
           case 'watch':
             return addChannel(content, message);
-          case 'stop watching':
+          case 'stopwatching':
             return removeChannel(content, message);
-          case 'list watched':
+          case 'listwatched':
             return listWatched(content, message);
-          case 'set log':
+          case 'setlog':
             return setLog(content, message);
-          case 'set prefix':
+          case 'setprefix':
             return setPrefix(content, message);
-          case 'reset prefix':
+          case 'resetprefix':
             return resetPrefix(content, message);
           default:
             return message.reply(`Command \`${content}\` unavailable`);
