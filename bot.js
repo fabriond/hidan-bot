@@ -74,7 +74,7 @@ function removeChannel(content, message) {
         if(error) handleDbError(error, message.channel);
         
         try {
-          await getWatchlist(message.guild.id).deleteOne({
+          await getWatchlist(dbClient, message.guild.id).deleteOne({
             _id: channel.id
           })
            
@@ -193,7 +193,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   await dbClient.connect(async (error, dbClient) => {
     if(error) handleDbError(error);
     try{
-      const isChannelWatched = await getWatchlist(channel.guild.id).indexExists(channel.id);
+      const isChannelWatched = await getWatchlist(dbClient, channel.guild.id).indexExists(channel.id);
 
       if(isChannelWatched) {
         if(channel.full) {
