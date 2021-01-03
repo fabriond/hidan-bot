@@ -92,7 +92,8 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   } catch(error) {
     message.reply(error.message)
   }
-
+  if(textChannel) textChannel.send(`${oldState}, ${newState}`)
+  console.log(oldState, newState)
   if(channelsToWatch.includes(channel.id)) {
     if(channel.full) {
       if(textChannel) textChannel.send(`${channel} is full, hiding it`)
