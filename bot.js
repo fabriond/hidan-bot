@@ -92,7 +92,7 @@ function listWatched(content, message) {
       await dbClient.connect(async (error) => {
         if(error) handleDbError(error);
         
-        const channelsToWatch = await getWatchlist(message.guild.id).find().toArray();
+        const channelsToWatch = await getWatchlist(message.guild.id).listIndexes().toArray();
         console.log(channelsToWatch);
 
         if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
