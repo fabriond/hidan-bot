@@ -107,6 +107,15 @@ function resetPrefix(content, message) {
   })
 }
 
+function helpMessage() {
+  return `List of commands: \n
+\n
+\`watch <channel_id>\` - adds voice channel to the watch list, making them private as soon as they're full and visible otherwise\n
+\`stop watching <channel_id>\` - removes voice channel from the watch list\n
+\`list watched\` - lists all watched channels\n
+`
+}
+
 client.on('message', (message) => {
   if(!message.author.bot) {
     checkFor(prefix, message.content, (content) => {
@@ -132,13 +141,7 @@ client.on('message', (message) => {
             return resetPrefix(content, message);
 
           case content.startsWith('help'):
-            return message.channel.send("\
-              List of commands: \n\
-              \n\
-              \`watch <channel_id>\` - adds voice channel to the watch list, making them private as soon as they're full and visible otherwise\n\
-              \`stop watching <channel_id>\` - removes voice channel from the watch list\n\
-              \`list watched\` - lists all watched channels\n\
-            ")
+            return message.channel.send(helpMessage());
 
           default:
             return message.channel.send(`Command \`${content}\` unavailable`);
