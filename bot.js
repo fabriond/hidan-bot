@@ -30,9 +30,9 @@ function addChannel(content, message) {
       if(channelsToWatch.includes(channel.id)) throw Error('Channel already being watched')
 
       channelsToWatch.push(channel.id);
-      message.reply(`Added channel ${channel.toString()} to the watch list`);
+      message.channel.send(`Added channel ${channel.toString()} to the watch list`);
     } catch(error) {
-      message.reply(error.message);
+      message.channel.send(error.message);
     }
   })
 }
@@ -46,9 +46,9 @@ function removeChannel(content, message) {
 
       const removeIndex = channelsToWatch.indexOf(channel.id);
       channelsToWatch.splice(removeIndex, 1)
-      message.reply(`Removed channel ${channel.toString()} from the watch list`);
+      message.channel.send(`Removed channel ${channel.toString()} from the watch list`);
     } catch(error) {
-      message.reply(error.message);
+      message.channel.send(error.message);
     }
   })
 }
@@ -64,9 +64,9 @@ function listWatched(content, message) {
         })
       )
 
-      message.reply(`Channels being watched: ${channels.join(", ")}`)
+      message.channel.send(`Channels being watched: ${channels.join(", ")}`)
     } catch(error) {
-      message.reply(error.message);
+      message.channel.send(error.message);
     }
   })
 }
@@ -78,9 +78,9 @@ function setLog(content, message) {
       if(!channel.isText()) throw Error('Voice channels not allowed');
 
       logChannel = channel.id;
-      message.reply(`Set channel ${channel.toString()} as the log channel`);
+      message.channel.send(`Set channel ${channel.toString()} as the log channel`);
     } catch(error) {
-      message.reply(error.message);
+      message.channel.send(error.message);
     }
   })
 }
@@ -91,9 +91,9 @@ function setPrefix(content, message) {
       if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters');
 
       prefix = newPrefix;
-      message.reply(`Set prefix to: \`${newPrefix}\``)
+      message.channel.send(`Set prefix to: \`${newPrefix}\``)
     } catch(error) {
-      message.reply(error.message);
+      message.channel.send(error.message);
     }
   }, false)
 }
@@ -123,7 +123,7 @@ client.on('message', (message) => {
           case 'resetprefix':
             return resetPrefix(content, message);
           default:
-            return message.reply(`Command \`${content}\` unavailable`);
+            return message.channel.send(`Command \`${content}\` unavailable`);
         }
 
       }
