@@ -3,6 +3,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 let prefix = 'Hidan, ';
+let logChannel;
 const channelsToWatch = [];
 
 function checkFor(text, messageContent, callback, trim = true) {
@@ -21,6 +22,20 @@ function watchChannel(content, message) {
 
       channelsToWatch.push(channel.id);
       message.reply(`Added channel ${channel.toString()} to the watch list`);
+    } catch(error) {
+      message.reply(error.message);
+    }
+  })
+}
+
+function setLog(content, message) {
+  checkFor('setlog', content, async (channelID) => {
+    try {
+      const channel = await client.channels.fetch(channelID);
+      if(!channel.isText()) throw Error('Voice channels not allowed');
+
+      logChannel = channel.id;
+      message.reply(`Set channel ${channel.toString()} as the log channel`);
     } catch(error) {
       message.reply(error.message);
     }
@@ -53,13 +68,15 @@ client.on('message', (message) => {
         
         switch(content.split(" ", 2)[0]) {
           case 'watch':
-            watchChannel(content, message);
+            return watchChannel(content, message);
+          case 'setlog':
+            return setLog(content, message);
           case 'setprefix':
-            setPrefix(content, message);
+            return setPrefix(content, message);
           case 'resetprefix':
-            resetPrefix(content, message);
+            return resetPrefix(content, message);
           default:
-            message.reply(`Command \`${content}\` unavailable`);
+            return message.reply(`Command \`${content}\` unavailable`);
         }
 
       }
@@ -69,9 +86,16 @@ client.on('message', (message) => {
 
 client.on('voiceStateUpdate', (oldState, newState) => {
   const channel = newState.channel;
+  let textChannel;
+  try {
+    textChannel = await client.channels.fetch(logChannel);
+  } catch(error) {
+    message.reply(error.message)
+  }
 
   if(channelsToWatch.includes(channel.id)) {
     if(channel.full) {
+      if(textChannel) textChannel.send(`${channel} is full, hiding it`)
       channel.overwritePermissions([
         {
           id: channel.guild.roles.everyone,
@@ -79,6 +103,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         }
       ], 'Channel is full');
     } else {
+      if(textChannel) textChannel.send(`${channel} is not full, displaying it`)
       channel.overwritePermissions([
         {
           id: channel.guild.roles.everyone,
