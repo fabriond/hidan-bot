@@ -18,6 +18,10 @@ function getWatchlist(guildID) {
   return dbClient.db().collection(`watchlist-${guildID}`);
 }
 
+async function getWatchedIDs(guildID) {
+  return (await getWatchlist(guildID).find().toArray()).map((c) => c._id)
+}
+
 async function logChannelMessage(content) {
   let logChannel;
   try {
@@ -92,7 +96,7 @@ function listWatched(content, message) {
       await dbClient.connect(async (error) => {
         if(error) handleDbError(error);
         
-        const channelsToWatch = await getWatchlist(message.guild.id).listIndexes().toArray();
+        const channelsToWatch = await getWatchedIDs(message.guild.id);
         console.log(channelsToWatch);
 
         if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
@@ -189,33 +193,39 @@ client.on('message', (message) => {
   }
 })
 
-client.on('voiceStateUpdate', async (oldState, newState) => {
-  const channel = newState.channel || oldState.channel;
+async function switchState(channel) {
+  const isChannelWatched = !!(await getWatchlist(channel.guild.id).findOne({_id: channel.id}));
 
+  if(isChannelWatched) {
+    if(channel.full) {
+      logChannelMessage(`${channel} is full, hiding it`)
+      channel.overwritePermissions([
+        {
+          id: channel.guild.roles.everyone,
+          deny: ['VIEW_CHANNEL'],
+        }
+      ], 'Channel is full');
+    } else {
+      logChannelMessage(`${channel} is not full, displaying it`)
+      channel.overwritePermissions([
+        {
+          id: channel.guild.roles.everyone,
+          allow: ['VIEW_CHANNEL'],
+        }
+      ], 'Channel is not full');
+    }
+  }
+}
+
+client.on('voiceStateUpdate', async (oldState, newState) => {
   await dbClient.connect(async (error) => {
     if(error) handleDbError(error);
     
-    const isChannelWatched = !!(await getWatchlist(channel.guild.id).findOne({_id: channel.id}));
+    const newChannel = newState.channel;
+    const oldChannel = oldState.channel;
 
-    if(isChannelWatched) {
-      if(channel.full) {
-        logChannelMessage(`${channel} is full, hiding it`)
-        channel.overwritePermissions([
-          {
-            id: channel.guild.roles.everyone,
-            deny: ['VIEW_CHANNEL'],
-          }
-        ], 'Channel is full');
-      } else {
-        logChannelMessage(`${channel} is not full, displaying it`)
-        channel.overwritePermissions([
-          {
-            id: channel.guild.roles.everyone,
-            allow: ['VIEW_CHANNEL'],
-          }
-        ], 'Channel is not full');
-      }
-    }
+    switchState(newChannel);
+    if(newChannel.id !== oldChannel.id) switchState(oldChannel);
   });
 })
 
