@@ -224,8 +224,11 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     const newChannel = newState.channel;
     const oldChannel = oldState.channel;
 
-    if(newChannel?.id) switchState(newChannel);
-    if(oldChannel?.id && newChannel?.id !== oldChannel?.id) switchState(oldChannel);
+    const checkNew = newChannel && newChannel.id
+    const checkOld = oldChannel && oldChannel.id
+
+    if(checkNew) switchState(newChannel);
+    if(checkOld && newChannel !== oldChannel) switchState(oldChannel);
   });
 })
 
