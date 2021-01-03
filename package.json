@@ -1,0 +1,19 @@
+{
+  "name": "hidan-bot",
+  "version": "1.0.0",
+  "description": "Hidan bot is used to hide specific voice channels when they're full",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "hidan"
+  ],
+  "author": "Fabriond",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.5.1"
+  }
+}
