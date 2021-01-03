@@ -3,8 +3,16 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 let prefix = 'Hidan, ';
-let logChannel;
+let logChannelID;
 const channelsToWatch = [];
+
+function logChannelMessage(content) {
+  let logChannel;
+  try {
+    logChannel = await client.channels.fetch(logChannelID);
+    logChannel.send(content);
+  } catch(error) {}
+}
 
 function checkFor(text, messageContent, callback, trim = true) {
   if(messageContent.startsWith(text)) {
@@ -14,11 +22,12 @@ function checkFor(text, messageContent, callback, trim = true) {
   }
 }
 
-function watchChannel(content, message) {
+function addChannel(content, message) {
   checkFor('watch', content, async (channelID) => {
     try {
       const channel = await client.channels.fetch(channelID);
       if(channel.isText()) throw Error('Text channels not allowed');
+      if(channelsToWatch.includes(channel.id)) throw Error('Channel already being watched')
 
       channelsToWatch.push(channel.id);
       message.reply(`Added channel ${channel.toString()} to the watch list`);
@@ -28,8 +37,47 @@ function watchChannel(content, message) {
   })
 }
 
+function removeChannel(content, message) {
+  checkFor('stop watching', content, async (channelID) => {
+    try {
+      const channel = await client.channels.fetch(channelID);
+      if(channel.isText()) throw Error('Text channels not allowed');
+      if(!channelsToWatch.includes(channel.id)) throw Error('Channel not being watched')
+
+      const removeIndex = channelsToWatch.indexOf(channel.id);
+      channelsToWatch.splice(removeIndex, 1)
+      message.reply(`Removed channel ${channel.toString()} from the watch list`);
+    } catch(error) {
+      message.reply(error.message);
+    }
+  })
+}
+
+function listWatched(content, message) {
+  checkFor('list watched', content, async () => {
+    try {
+      if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
+
+      const channels = await Promise.all(
+        channelsToWatch.map(() => {
+          return client.channels.fetch(channelID);
+        })
+      )
+      
+      let response = channels.join(", ").split('');
+      const lastComma = response.lastIndexOf(',');
+      if(lastComma !== -1) response = response.splice(lastComma, 1, " and");
+      response = response.join('') + ` ${channels.length === 1 ? 'is' : 'are'} being watched`;
+
+      message.reply(response)
+    } catch(error) {
+      message.reply(error.message);
+    }
+  })
+}
+
 function setLog(content, message) {
-  checkFor('setlog', content, async (channelID) => {
+  checkFor('set log', content, async (channelID) => {
     try {
       const channel = await client.channels.fetch(channelID);
       if(!channel.isText()) throw Error('Voice channels not allowed');
@@ -43,7 +91,7 @@ function setLog(content, message) {
 }
 
 function setPrefix(content, message) {
-  checkFor('setprefix ', content, async (newPrefix) => {
+  checkFor('set prefix ', content, async (newPrefix) => {
     try {
       if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters');
 
@@ -56,7 +104,7 @@ function setPrefix(content, message) {
 }
 
 function resetPrefix(content, message) {
-  checkFor('resetprefix', content, async () => {
+  checkFor('reset prefix', content, async () => {
     setPrefix('setprefix Hidan, ', message);
   })
 }
@@ -68,12 +116,16 @@ client.on('message', (message) => {
         
         switch(content.split(" ", 2)[0]) {
           case 'watch':
-            return watchChannel(content, message);
-          case 'setlog':
+            return addChannel(content, message);
+          case 'stop watching':
+            return removeChannel(content, message);
+          case 'list watched':
+            return listWatched(content, message);
+          case 'set log':
             return setLog(content, message);
-          case 'setprefix':
+          case 'set prefix':
             return setPrefix(content, message);
-          case 'resetprefix':
+          case 'reset prefix':
             return resetPrefix(content, message);
           default:
             return message.reply(`Command \`${content}\` unavailable`);
@@ -87,17 +139,12 @@ client.on('message', (message) => {
 client.on('voiceStateUpdate', async (oldState, newState) => {
   const channel = newState.channel || oldState.channel;
 
-  let textChannel;
-  try {
-    textChannel = await client.channels.fetch(logChannel);
-  } catch(error) {}
-
   console.log('oldState', oldState);
   console.log('newState', newState);
 
   if(channelsToWatch.includes(channel.id)) {
     if(channel.full) {
-      if(textChannel) textChannel.send(`${channel} is full, hiding it`)
+      logChannelMessage(`${channel} is full, hiding it`)
       channel.overwritePermissions([
         {
           id: channel.guild.roles.everyone,
@@ -105,7 +152,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         }
       ], 'Channel is full');
     } else {
-      if(textChannel) textChannel.send(`${channel} is not full, displaying it`)
+      logChannelMessage(`${channel} is not full, displaying it`)
       channel.overwritePermissions([
         {
           id: channel.guild.roles.everyone,
