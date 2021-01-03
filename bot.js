@@ -59,7 +59,7 @@ client.on('message', (message) => {
           case 'resetprefix':
             resetPrefix(content, message);
           default:
-            message.reply("Command unavailable");
+            message.reply(`Command \`${content}\` unavailable`);
         }
 
       }
