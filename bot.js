@@ -151,9 +151,9 @@ function resetPrefix(content, message) {
 
 function helpMessage() {
   return `List of commands: \n
-\`watch <channel_id>\` - adds voice channel to the watch list, making them private as soon as they're full and visible otherwise\n
-\`stop watching <channel_id>\` - removes voice channel from the watch list\n
-\`list watched\` - lists all watched channels\n
+\`${prefix}watch <channel_id>\` - adds voice channel to the watch list, making them private as soon as they're full and visible otherwise\n
+\`${prefix}stop watching <channel_id>\` - removes voice channel from the watch list\n
+\`${prefix}list watched\` - lists all watched channels\n
 `
 }
 
