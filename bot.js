@@ -53,9 +53,9 @@ function addChannel(content, message) {
           message.channel.send(`Added channel ${channel.toString()} to the watch list`);
         } catch(error) {
           handleDbError(error, message.channel)
+        } finally {
+          dbClient.close();
         }
-
-        dbClient.close();
       });      
     } catch(error) {
       message.channel.send(error.message);
@@ -70,7 +70,7 @@ function removeChannel(content, message) {
       if(!channel) throw Error('Channel not found');
       if(channel.isText()) throw Error('Text channels not allowed');
 
-      dbClient.connect(async err => {
+      await dbClient.connect(async err => {
         if(err) handleDbError(err, message.channel);
         
         try {
@@ -81,9 +81,9 @@ function removeChannel(content, message) {
           message.channel.send(`Removed channel ${channel.toString()} from the watch list`);
         } catch(error) {
           handleDbError(error, message.channel);
+        } finally {
+          dbClient.close();
         }
-
-        dbClient.close();
       });      
     } catch(error) {
       message.channel.send(error.message);
@@ -190,7 +190,7 @@ client.on('message', (message) => {
 client.on('voiceStateUpdate', async (oldState, newState) => {
   const channel = newState.channel || oldState.channel;
 
-  dbClient.connect(async err => {
+  await dbClient.connect(async err => {
     if(err) handleDbError(err);
     try{
       const isChannelWatched = await getWatchlist(channel.guild.id).indexExists(channel.id);
