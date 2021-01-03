@@ -38,7 +38,7 @@ function addChannel(content, message) {
 }
 
 function removeChannel(content, message) {
-  checkFor('stopwatching', content, async (channelID) => {
+  checkFor('stop watching', content, async (channelID) => {
     try {
       const channel = await client.channels.fetch(channelID);
       if(channel.isText()) throw Error('Text channels not allowed');
@@ -54,7 +54,7 @@ function removeChannel(content, message) {
 }
 
 function listWatched(content, message) {
-  checkFor('listwatched', content, async () => {
+  checkFor('list watched', content, async () => {
     try {
       if(channelsToWatch.length === 0) throw Error('No channels are currently being watched');
 
@@ -72,7 +72,7 @@ function listWatched(content, message) {
 }
 
 function setLog(content, message) {
-  checkFor('setlog', content, async (channelID) => {
+  checkFor('set log channel', content, async (channelID) => {
     try {
       const channel = await client.channels.fetch(channelID);
       if(!channel.isText()) throw Error('Voice channels not allowed');
@@ -86,7 +86,7 @@ function setLog(content, message) {
 }
 
 function setPrefix(content, message) {
-  checkFor('setprefix ', content, async (newPrefix) => {
+  checkFor('set prefix ', content, async (newPrefix) => {
     try {
       if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters');
 
@@ -99,7 +99,7 @@ function setPrefix(content, message) {
 }
 
 function resetPrefix(content, message) {
-  checkFor('resetprefix', content, async () => {
+  checkFor('reset prefix', content, async () => {
     setPrefix('setprefix Hidan, ', message);
   })
 }
@@ -109,19 +109,25 @@ client.on('message', (message) => {
     checkFor(prefix, message.content, (content) => {
       if(message.member.hasPermission('ADMINISTRATOR')) {
         
-        switch(content.split(" ", 2)[0]) {
-          case 'watch':
+        switch(true) {
+          case content.startsWith('watch'):
             return addChannel(content, message);
-          case 'stopwatching':
+
+          case content.startsWith('stop watching'):
             return removeChannel(content, message);
-          case 'listwatched':
+
+          case content.startsWith('list watched'):
             return listWatched(content, message);
-          case 'setlog':
+
+          case content.startsWith('set log channel'):
             return setLog(content, message);
-          case 'setprefix':
+
+          case content.startsWith('set prefix'):
             return setPrefix(content, message);
-          case 'resetprefix':
+
+          case content.startsWith('reset prefix'):
             return resetPrefix(content, message);
+
           default:
             return message.channel.send(`Command \`${content}\` unavailable`);
         }
