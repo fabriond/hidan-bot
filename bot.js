@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const MongoClient = require('mongodb').MongoClient;
 
-let prefix = 'Hidan, ';
+let prefix = 'Hidan,';
 let logChannelID;
 const dbClient = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -30,11 +30,9 @@ async function logChannelMessage(content) {
   } catch(error) {}
 }
 
-function checkFor(text, messageContent, callback, trim = true) {
+function checkFor(text, messageContent, callback) {
   if(messageContent.startsWith(text)) {
-    let result = messageContent.replace(text, '')
-    if(trim) result = result.trim();
-    callback(result);
+    callback(messageContent.replace(text, '').trim());
   }
 }
 
@@ -130,7 +128,7 @@ function setLog(content, message) {
 }
 
 function setPrefix(content, message) {
-  checkFor('set prefix ', content, async (newPrefix) => {
+  checkFor('set prefix', content, async (newPrefix) => {
     try {
       if(newPrefix.length < 3) throw Error('Prefix can\'t be under 3 characters long');
       else if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters long');
@@ -140,7 +138,7 @@ function setPrefix(content, message) {
     } catch(error) {
       message.channel.send(error.message);
     }
-  }, false)
+  })
 }
 
 function resetPrefix(content, message) {
