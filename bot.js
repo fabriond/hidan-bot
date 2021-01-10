@@ -23,9 +23,8 @@ async function getWatchedIDs(guildID) {
 }
 
 async function logChannelMessage(content) {
-  let logChannel;
   try {
-    logChannel = await client.channels.fetch(logChannelID);
+    const logChannel = await client.channels.fetch(logChannelID);
     logChannel.send(content);
   } catch(error) {}
 }
