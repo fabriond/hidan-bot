@@ -24,19 +24,34 @@ async function index(message) {
 }
 
 async function create(message, channel) {
-  await dbClient.connect(async (error) => {
-    if(error) helpers.handleDbError(error, message.channel);
+
+  try {
+    await dbClient.connect();
+
+    await helpers.getWatchlist(message.guild.id).insertOne({
+      _id: channel.id
+    });
+
+    message.channel.send(`Added channel ${channel.toString()} to the watch list`);
+  } catch(error) {
+    helpers.handleDbError(error, message.channel)
+  } finally {
+    await dbClient.close();
+  }
+
+  // await dbClient.connect(async (error) => {
+  //   if(error) helpers.handleDbError(error, message.channel);
     
-    try{
-      await helpers.getWatchlist(message.guild.id).insertOne({
-        _id: channel.id
-      })
+  //   try{
+  //     await helpers.getWatchlist(message.guild.id).insertOne({
+  //       _id: channel.id
+  //     })
       
-      message.channel.send(`Added channel ${channel.toString()} to the watch list`);
-    } catch(error) {
-      helpers.handleDbError(error, message.channel)
-    }
-  });
+  //     message.channel.send(`Added channel ${channel.toString()} to the watch list`);
+  //   } catch(error) {
+  //     helpers.handleDbError(error, message.channel)
+  //   }
+  // });
 }
 
 async function destroy(message, channel) {
