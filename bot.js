@@ -1,201 +1,39 @@
-const Discord = require('discord.js');
+const Config = require('./config');
+const client = Config.getDiscordClient();
+const dbClient = Config.getMongoClient();
+const helpers = require('./helpers');
 
-const client = new Discord.Client();
-const MongoClient = require('mongodb').MongoClient;
-
-let prefix = 'Hidan,';
-let logChannelID;
-const dbClient = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-function handleDbError(error, replyChannel) {
-  if(replyChannel) replyChannel.send(error.message);
-  else console.log(error.message);
-
-  throw error;
-}
-
-function getWatchlist(guildID) {
-  return dbClient.db().collection(`watchlist-${guildID}`);
-}
-
-async function getWatchedIDs(guildID) {
-  return (await getWatchlist(guildID).find().toArray()).map((c) => c._id)
-}
-
-async function logChannelMessage(content) {
-  try {
-    const logChannel = await client.channels.fetch(logChannelID);
-    logChannel.send(content);
-  } catch(error) {}
-}
-
-function checkFor(text, messageContent, callback) {
-  if(messageContent.startsWith(text)) {
-    callback(messageContent.replace(text, '').trim());
-  }
-}
-
-function addChannel(content, message) {
-  checkFor('watch', content, async (channelID) => {
-    try {
-      const channel = await message.guild.channels.resolve(channelID);
-      if(!channel) throw Error('Channel not found');
-      if(channel.isText()) throw Error('Text channels not allowed');
-
-      await dbClient.connect(async (error) => {
-        if(error) handleDbError(error, message.channel);
-        
-        try{
-          await getWatchlist(message.guild.id).insertOne({
-            _id: channel.id
-          })
-          
-          message.channel.send(`Added channel ${channel.toString()} to the watch list`);
-        } catch(error) {
-          handleDbError(error, message.channel)
-        }
-      });      
-    } catch(error) {
-      message.channel.send(error.message);
-    }
-  })
-}
-
-function removeChannel(content, message) {
-  checkFor('stop watching', content, async (channelID) => {
-    try {
-      const channel = await message.guild.channels.resolve(channelID);
-      if(!channel) throw Error('Channel not found');
-      if(channel.isText()) throw Error('Text channels not allowed');
-
-      await dbClient.connect(async (error) => {
-        if(error) handleDbError(error, message.channel);
-        
-        try {
-          await getWatchlist(message.guild.id).deleteOne({
-            _id: channel.id
-          })
-           
-          message.channel.send(`Removed channel ${channel.toString()} from the watch list`);
-        } catch(error) {
-          handleDbError(error, message.channel);
-        }
-      }); 
-    } catch(error) {
-      message.channel.send(error.message);
-    }
-  })
-}
-
-function listWatched(content, message) {
-  checkFor('list watched', content, async () => {
-    try {
-      await dbClient.connect(async (error) => {
-        if(error) handleDbError(error);
-        
-        const channelsToWatch = await getWatchedIDs(message.guild.id);
-        console.log(channelsToWatch);
-
-        if(channelsToWatch.length === 0) return message.channel.send('No channels are currently being watched');
-    
-        const channels = await Promise.all(
-          channelsToWatch.map((channelID) => {
-            return message.guild.channels.resolve(channelID);
-          })
-        );
-  
-        message.channel.send(`Channels being watched: ${channels.filter((channel) => !!channel).join(", ")}`)
-      });
-    } catch(error) {
-      message.channel.send(error.message);
-    }
-  })
-}
-
-function setLog(content, message) {
-  checkFor('set log channel', content, async (channelID) => {
-    try {
-      const channel = await message.guild.channels.resolve(channelID);
-      if(!channel.isText()) throw Error('Voice channels not allowed');
-
-      logChannel = channel.id;
-      message.channel.send(`Set channel ${channel.toString()} as the log channel`);
-    } catch(error) {
-      message.channel.send(error.message);
-    }
-  })
-}
-
-function setPrefix(content, message) {
-  checkFor('set prefix', content, async (newPrefix) => {
-    try {
-      if(newPrefix.length < 3) throw Error('Prefix can\'t be under 3 characters long');
-      else if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters long');
-
-      prefix = newPrefix;
-      message.channel.send(`Set prefix to: \`${newPrefix}\``)
-    } catch(error) {
-      message.channel.send(error.message);
-    }
-  })
-}
-
-function resetPrefix(content, message) {
-  checkFor('reset prefix', content, async () => {
-    setPrefix('setprefix Hidan, ', message);
-  })
-}
-
-function helpMessage() {
-  return `List of commands: \n
-\`${prefix}watch <channel_id>\` - adds voice channel to the watch list, making them private as soon as they're full and visible otherwise\n
-\`${prefix}stop watching <channel_id>\` - removes voice channel from the watch list\n
-\`${prefix}list watched\` - lists all watched channels\n
-`
-}
+const COMMANDS = require('./commands');
 
 client.on('message', (message) => {
-  if(!message.author.bot) {
-    checkFor(prefix, message.content, (content) => {
-      if(message.member.hasPermission('ADMINISTRATOR')) {
-        
-        switch(true) {
-          case content.startsWith('watch'):
-            return addChannel(content, message);
+  if(!message.author.bot) {    
+    if(message.member.hasPermission('ADMINISTRATOR')) {
+      try {
+        const content = helpers.checkFor(Config.prefix, message.content);
 
-          case content.startsWith('stop watching'):
-            return removeChannel(content, message);
+        if(content === null) return;
 
-          case content.startsWith('list watched'):
-            return listWatched(content, message);
-
-          case content.startsWith('set log channel'):
-            return setLog(content, message);
-
-          case content.startsWith('set prefix'):
-            return setPrefix(content, message);
-
-          case content.startsWith('reset prefix'):
-            return resetPrefix(content, message);
-
-          case content.startsWith('help'):
-            return message.channel.send(helpMessage());
-
-          default:
-            return message.channel.send(`Command \`${content}\` unavailable`);
+        for(const command in Object.getOwnPropertyNames(COMMANDS)) {
+          const response = helpers.checkFor(command, content);
+          if(response != null){
+            return COMMANDS[command].call(message, response);
+          }
         }
 
+        return message.channel.send(`Command \`${content}\` unavailable`);
+      } catch(error) {
+        return message.channel.send(error.message);
       }
-    })
+    }
   }
 })
 
 async function switchState(channel) {
-  const isChannelWatched = !!(await getWatchlist(channel.guild.id).findOne({_id: channel.id}));
+  const isChannelWatched = !!(await helpers.getWatchlist(channel.guild.id).findOne({_id: channel.id}));
 
   if(isChannelWatched) {
     if(channel.full) {
-      logChannelMessage(`${channel} is full, hiding it`)
+      helpers.logChannelMessage(`${channel} is full, hiding it`)
       channel.overwritePermissions([
         {
           id: channel.guild.roles.everyone,
@@ -203,7 +41,7 @@ async function switchState(channel) {
         }
       ], 'Channel is full');
     } else {
-      logChannelMessage(`${channel} is not full, displaying it`)
+      helpers.logChannelMessage(`${channel} is not full, displaying it`)
       channel.overwritePermissions([
         {
           id: channel.guild.roles.everyone,
@@ -214,9 +52,9 @@ async function switchState(channel) {
   }
 }
 
-client.on('voiceStateUpdate', async (oldState, newState) => {
-  await dbClient.connect(async (error) => {
-    if(error) handleDbError(error);
+client.on('voiceStateUpdate', (oldState, newState) => {
+  dbClient.connect((error) => {
+    if(error) helpers.handleDbError(error);
     
     const newChannel = newState.channel;
     const oldChannel = oldState.channel;
@@ -230,7 +68,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 })
 
 client.on('ready', () => {
-  client.user.setActivity(`\`${prefix}\``, {
+  client.user.setActivity(`'${Config.prefix}'`, {
     type: 'LISTENING'
   })
 })
