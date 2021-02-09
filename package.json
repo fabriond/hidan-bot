@@ -1,7 +1,7 @@
 {
   "name": "hidan-bot",
   "version": "1.0.0",
-  "description": "Hidan bot watches over specific discord voice channels and hides them (by making them private) when they're full ",
+  "description": "Hidan bot watches over discord voice channels (specifically set by the server's admins) and hides them (by making them private) when they're full",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
