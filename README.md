@@ -1,7 +1,7 @@
 # Hidan Bot
 Hidan bot watches over discord voice channels (specifically set by the server's admins) and hides them (by making them private) when they're full, but visible otherwise
 
-## Bot prefix
+## Command prefix
 Hidan bot uses the "Hidan," prefix by default. 
 So far prefixes can only be set globally (and any changes to it would only stay in effect until the next deploy). 
 Pull requests to add the prefix change by server are welcome.
