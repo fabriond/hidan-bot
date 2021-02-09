@@ -13,10 +13,12 @@ client.on('message', (message) => {
 
         if(content === null) return;
 
-        for(const command in Object.getOwnPropertyNames(COMMANDS)) {
-          const response = helpers.checkFor(command, content);
-          if(response != null){
-            return COMMANDS[command].call(message, response);
+        for(const command in COMMANDS) {
+          if(!COMMANDS.hasOwnProperty(command)) continue;
+
+          const params = helpers.checkFor(command, content);
+          if(params != null){
+            return COMMANDS[command].call(null, message, params);
           }
         }
 

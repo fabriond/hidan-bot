@@ -1,5 +1,6 @@
 const Config = require("./config");
-
+const client = Config.getDiscordClient();
+const dbClient = Config.getMongoClient();
 
 function handleDbError(error, replyChannel) {
   if(replyChannel) replyChannel.send(error.message);
