@@ -23,7 +23,7 @@ client.on('message', async (message) => {
 
           const params = checkFor(command, content);
           if(params != null){
-            return COMMANDS[command].call(null, message, params);
+            return await COMMANDS[command].call(null, message, params);
           }
         }
 
