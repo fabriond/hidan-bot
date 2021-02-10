@@ -16,7 +16,7 @@ client.on('message', async (message) => {
 
         console.log(configs);
 
-        const content = checkFor(Config.getDefaultPrefix(), message.content) || checkFor(configs.prefix, message.content);
+        const content = checkFor(Config.getDefaultPrefix(), message.content) || checkFor(configs ? configs.prefix : null, message.content);
 
         if(content === null) return;
 
