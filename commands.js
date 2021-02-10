@@ -1,5 +1,6 @@
 const Config = require('./config');
 const dbChannels = require('./db/channels');
+const { setConfigs } = require('./db/guild_config');
 
 async function getVoiceChannel(guild, channelID) {
   const channel = await guild.channels.resolve(channelID);

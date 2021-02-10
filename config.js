@@ -7,7 +7,6 @@ class Config {
   static getDefaultPrefix = () => defaultPrefix;
   static getDiscordClient = () => discordClient;
   static getMongoClient = () => new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-  static prefix = defaultPrefix;
   static logChannelID;
 }
 

@@ -2,15 +2,21 @@ const Config = require('./config');
 const client = Config.getDiscordClient();
 const mongoClient = Config.getMongoClient;
 const { getWatchlist } = require('./db/channels');
+const { getConfigs } = require('./db/guild_config');
 const { checkFor, logChannelMessage, handleDbError } = require('./helpers');
 
 const COMMANDS = require('./commands');
 
-client.on('message', (message) => {
+client.on('message', async (message) => {
   if(!message.author.bot) {    
     if(message.member.hasPermission('ADMINISTRATOR')) {
       try {
-        const content = checkFor(Config.prefix, message.content);
+
+        const configs = await getConfigs(message);
+
+        console.log(configs);
+
+        const content = checkFor(Config.getDefaultPrefix(), message.content) || checkFor(configs.prefix, message.content);
 
         if(content === null) return;
 
