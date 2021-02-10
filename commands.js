@@ -36,8 +36,7 @@ async function setPrefix(message, newPrefix) {
   if(newPrefix.length < 3) throw Error('Prefix can\'t be under 3 characters long');
   else if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters long');
 
-  Config.prefix = newPrefix;
-  message.channel.send(`Set prefix to: \`${newPrefix}\``)
+  setConfigs(message, { prefix: newPrefix });
 }
 
 async function resetPrefix(message) {
