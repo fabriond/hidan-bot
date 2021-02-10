@@ -51,8 +51,8 @@ async function sendHelpMessage(message) {
     + `\`${prefix} watch <channel_id>\` - adds voice channel to the watch list, making them private as soon as they're full and visible otherwise\n`
     + `\`${prefix} stop watching <channel_id>\` - removes voice channel from the watch list\n`
     + `\`${prefix} list watched\` - lists all watched channels\n`
-    + `\`${prefix} set prefix <new_prefix>\` - changes current prefix for the server (default prefix always works regardless of the prefix chosen)`
-    + `\`${prefix} reset prefix\` - removes custom prefix for the server, so that only the default prefix is recognized`
+    + `\`${prefix} set prefix <new_prefix>\` - changes the server prefix (the default prefix always works regardless of the server prefix)`
+    + `\`${prefix} reset prefix\` - removes server prefix, so that only the default prefix is recognized`
     + `\`${prefix} help\` - displays the list of commands`
   )
 }
