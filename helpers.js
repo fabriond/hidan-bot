@@ -1,6 +1,5 @@
 const Config = require("./config");
 const client = Config.getDiscordClient();
-const dbClient = Config.getMongoClient();
 
 function handleDbError(error, replyChannel) {
   if(replyChannel) replyChannel.send(error.message);
@@ -30,12 +29,12 @@ function checkFor(text, messageContent, throwError) {
   }
 }
 
-function getWatchlist(guildID) {
+function getWatchlist(dbClient, guildID) {
   return dbClient.db().collection(`watchlist-${guildID}`);
 }
 
-async function getWatchedIDs(guildID) {
-  return (await getWatchlist(guildID).find().toArray()).map((c) => c._id);
+async function getWatchedIDs(dbClient, guildID) {
+  return (await getWatchlist(dbClient, guildID).find().toArray()).map((c) => c._id);
 }
 
 module.exports = { checkFor, handleDbError, logChannelMessage, getWatchlist, getWatchedIDs }

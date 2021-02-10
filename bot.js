@@ -1,6 +1,6 @@
 const Config = require('./config');
 const client = Config.getDiscordClient();
-const dbClient = Config.getMongoClient();
+const mongoClient = Config.getMongoClient;
 const helpers = require('./helpers');
 
 const COMMANDS = require('./commands');
@@ -30,8 +30,8 @@ client.on('message', (message) => {
   }
 })
 
-async function switchState(channel) {
-  const isChannelWatched = !!(await helpers.getWatchlist(channel.guild.id).findOne({_id: channel.id}));
+async function switchState(dbClient, channel) {
+  const isChannelWatched = !!(await helpers.getWatchlist(dbClient, channel.guild.id).findOne({_id: channel.id}));
 
   if(isChannelWatched) {
     if(channel.full) {
@@ -54,19 +54,25 @@ async function switchState(channel) {
   }
 }
 
-client.on('voiceStateUpdate', (oldState, newState) => {
-  dbClient.connect((error) => {
-    if(error) helpers.handleDbError(error);
-    
+client.on('voiceStateUpdate', async (oldState, newState) => {
+  let dbClient;
+
+  try{
+    dbClient = await mongoClient().connect();
+
     const newChannel = newState.channel;
     const oldChannel = oldState.channel;
 
     const checkNew = newChannel && newChannel.id
     const checkOld = oldChannel && oldChannel.id
 
-    if(checkNew) switchState(newChannel);
-    if(checkOld && newChannel !== oldChannel) switchState(oldChannel);
-  });
+    if(checkNew) await switchState(dbClient, newChannel);
+    if(checkOld && newChannel !== oldChannel) await switchState(dbClient, oldChannel);
+  } catch(error) {
+    helpers.handleDbError(error);
+  } finally {
+    if(dbClient) await dbClient.close();
+  }
 })
 
 client.on('ready', () => {
