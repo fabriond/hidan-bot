@@ -45,11 +45,12 @@ async function resetPrefix(message) {
 }
 
 async function sendHelpMessage(message) {
+  const prefix = Config.getDefaultPrefix();
   message.channel.send(
     `List of commands: \n`
-    + `\`${Config.prefix}watch <channel_id>\` - adds voice channel to the watch list, making them private as soon as they're full and visible otherwise\n`
-    + `\`${Config.prefix}stop watching <channel_id>\` - removes voice channel from the watch list\n`
-    + `\`${Config.prefix}list watched\` - lists all watched channels\n`
+    + `\`${prefix}watch <channel_id>\` - adds voice channel to the watch list, making them private as soon as they're full and visible otherwise\n`
+    + `\`${prefix}stop watching <channel_id>\` - removes voice channel from the watch list\n`
+    + `\`${prefix}list watched\` - lists all watched channels\n`
   )
 }
 
