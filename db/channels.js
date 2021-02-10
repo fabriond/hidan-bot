@@ -1,16 +1,16 @@
 const { performOperation } = require('./helpers');
 
-function getWatchlist(dbClient, guildID) {
-  return dbClient.db().collection(`watchlist-${guildID}`);
+function getWatchlist(dbClient, guild) {
+  return dbClient.db().collection(`watchlist-${guild.id}`);
 }
 
-async function getWatchedIDs(dbClient, guildID) {
-  return (await getWatchlist(dbClient, guildID).find().toArray()).map((c) => c._id);
+async function getWatchedIDs(dbClient, guild) {
+  return (await getWatchlist(dbClient, guild).find().toArray()).map((c) => c._id);
 }
 
 async function index(message) {
   return await performOperation(async (dbClient) => {
-    const channelsToWatch = await getWatchedIDs(dbClient, message.guild.id);
+    const channelsToWatch = await getWatchedIDs(dbClient, message.guild);
     console.log(channelsToWatch);
 
     if(channelsToWatch.length === 0) {
@@ -29,7 +29,7 @@ async function index(message) {
 
 async function create(message, channel) {
   return await performOperation(async (dbClient) => {
-    await getWatchlist(dbClient, message.guild.id).insertOne({
+    await getWatchlist(dbClient, message.guild).insertOne({
       _id: channel.id
     });
 
@@ -39,7 +39,7 @@ async function create(message, channel) {
 
 async function destroy(message, channel) {
   return await performOperation(async (dbClient) => {
-    await getWatchlist(dbClient, message.guild.id).deleteOne({
+    await getWatchlist(dbClient, message.guild).deleteOne({
       _id: channel.id
     })
       

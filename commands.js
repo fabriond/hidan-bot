@@ -1,6 +1,6 @@
 const Config = require('./config');
 const dbChannels = require('./db/channels');
-const { setConfigs } = require('./db/guild_config');
+const { setGuildConfigs } = require('./db/guild_config');
 
 async function getVoiceChannel(guild, channelID) {
   const channel = await guild.channels.resolve(channelID);
@@ -26,18 +26,11 @@ async function listWatched(message) {
   await dbChannels.index(message);
 }
 
-async function setLogChannel(message, channelID) {
-  const channel = await getVoiceChannel(message.guild, channelID);
-
-  Config.logChannelID = channel.id;
-  message.channel.send(`Set channel ${channel.toString()} as the log channel`);
-}
-
 async function setPrefix(message, newPrefix) {
   if(newPrefix.length < 3) throw Error('Prefix can\'t be under 3 characters long');
   else if(newPrefix.length > 8) throw Error('Prefix can\'t be over 8 characters long');
 
-  setConfigs(message, { prefix: newPrefix });
+  setGuildConfigs(message, { prefix: newPrefix });
 }
 
 async function resetPrefix(message) {
@@ -61,7 +54,6 @@ module.exports = {
   'watch': addChannel,
   'stop watching': removeChannel,
   'list watched': listWatched,
-  'set log channel': setLogChannel,
   'set prefix': setPrefix,
   'reset prefix': resetPrefix,
   'help': sendHelpMessage,

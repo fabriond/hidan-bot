@@ -4,15 +4,15 @@ function configsCollection(dbClient) {
   return dbClient.db().collection('guild_configs');
 }
 
-async function getConfigs(message) {
+async function getGuildConfigs(guild) {
   return await performOperation(async (dbClient) => {
-    const configs = await configsCollection(dbClient).findOne({ _id: message.guild.id });
+    const configs = await configsCollection(dbClient).findOne({ _id: guild.id });
 
     return configs;
   });
 }
 
-async function setConfigs(message, newConfigs) {
+async function setGuildConfigs(message, newConfigs) {
   return await performOperation(async (dbClient) => {
     const configs = await configsCollection(dbClient).findOne({ _id: message.guild.id });
 
@@ -34,4 +34,4 @@ async function setConfigs(message, newConfigs) {
   });
 }
 
-module.exports = { getConfigs, setConfigs };
+module.exports = { getGuildConfigs, setGuildConfigs };
