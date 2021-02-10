@@ -1,13 +1,6 @@
 const Config = require("./config");
 const client = Config.getDiscordClient();
 
-function handleDbError(error, replyChannel) {
-  if(replyChannel) replyChannel.send(error.message);
-  else console.log(error.message);
-
-  throw error;
-}
-
 async function logChannelMessage(content) {
   if(!Config.logChannelID) return;
 
@@ -29,4 +22,4 @@ function checkFor(text, messageContent, throwError) {
   }
 }
 
-module.exports = { checkFor, handleDbError, logChannelMessage }
+module.exports = { checkFor, logChannelMessage }

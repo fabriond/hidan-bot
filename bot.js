@@ -1,9 +1,10 @@
 const Config = require('./config');
 const client = Config.getDiscordClient();
 const mongoClient = Config.getMongoClient;
+const { handleDbError } = require('./db/helpers');
 const { getWatchlist } = require('./db/channels');
 const { getConfigs } = require('./db/guild_config');
-const { checkFor, logChannelMessage, handleDbError } = require('./helpers');
+const { checkFor, logChannelMessage } = require('./helpers');
 
 const COMMANDS = require('./commands');
 

@@ -1,6 +1,4 @@
-const Config = require('../config');
-const mongoClient = Config.getMongoClient;
-const { handleDbError } = require('../helpers');
+const { performOperation } = require('./helpers');
 
 function getWatchlist(dbClient, guildID) {
   return dbClient.db().collection(`watchlist-${guildID}`);
@@ -11,12 +9,7 @@ async function getWatchedIDs(dbClient, guildID) {
 }
 
 async function index(message) {
-
-  let dbClient;
-
-  try {
-    dbClient = await mongoClient().connect();
-
+  return await performOperation((dbClient) => {
     const channelsToWatch = await getWatchedIDs(dbClient, message.guild.id);
     console.log(channelsToWatch);
 
@@ -31,49 +24,27 @@ async function index(message) {
 
       message.channel.send(`Channels being watched: ${channels.filter((channel) => !!channel).join(", ")}`)
     }
-  } catch(error) {
-    handleDbError(error, message.channel)
-  } finally {
-    if(dbClient) await dbClient.close();
-  }
+  });
 }
 
 async function create(message, channel) {
-
-  let dbClient;
-
-  try {
-    dbClient = await mongoClient().connect();
-
+  return await performOperation((dbClient) => {
     await getWatchlist(dbClient, message.guild.id).insertOne({
       _id: channel.id
     });
 
     message.channel.send(`Added channel ${channel.toString()} to the watch list`);
-  } catch(error) {
-    handleDbError(error, message.channel)
-  } finally {
-    if(dbClient) await dbClient.close();
-  }
+  });
 }
 
 async function destroy(message, channel) {
-
-  let dbClient;
-
-  try {
-    dbClient = await mongoClient().connect();
-
+  return await performOperation((dbClient) => {
     await getWatchlist(dbClient, message.guild.id).deleteOne({
       _id: channel.id
     })
       
     message.channel.send(`Removed channel ${channel.toString()} from the watch list`);
-  } catch(error) {
-    handleDbError(error, message.channel);
-  } finally {
-    if(dbClient) await dbClient.close();
-  }
+  });
 }
 
 module.exports = { index, create, destroy, getWatchlist };
