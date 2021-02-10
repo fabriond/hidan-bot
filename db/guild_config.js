@@ -28,10 +28,18 @@ async function setConfigs(message, newConfigs) {
   try {
     dbClient = await mongoClient().connect();
 
-    await configsCollection(dbClient).findOneAndUpdate(
-      { _id: message.guild.id }, 
-      { $set: newConfigs }
-    );
+    const configs = await configsCollection(dbClient).findOne({ _id: message.guild.id });
+
+    if(configs) {
+      await configsCollection(dbClient).findOneAndUpdate(
+        { _id: message.guild.id }, 
+        { $set: newConfigs }
+      );
+    } else {
+      await configsCollection(dbClient).inserOne(
+        Object.assign({}, newConfigs, { _id: message.guild.id })
+      );
+    }
 
     for(const config in newConfigs) {
       if(!newConfigs.hasOwnProperty(config)) continue;
