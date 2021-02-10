@@ -36,7 +36,7 @@ async function setConfigs(message, newConfigs) {
         { $set: newConfigs }
       );
     } else {
-      await configsCollection(dbClient).inserOne(
+      await configsCollection(dbClient).insertOne(
         Object.assign({}, newConfigs, { _id: message.guild.id })
       );
     }
