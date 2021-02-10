@@ -16,8 +16,8 @@ class Command {
 
   getHelpMessage(prefix) {
     const commandParts = [prefix];
-    if(this.name) text.push(this.name);
-    if(this.params) text.push(this.params);
+    if(this.name) commandParts.push(this.name);
+    if(this.params) commandParts.push(this.params);
 
     return `\`${commandParts.join(' ')}\` - ${this.description}`;
   }
