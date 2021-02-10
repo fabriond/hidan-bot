@@ -29,12 +29,4 @@ function checkFor(text, messageContent, throwError) {
   }
 }
 
-function getWatchlist(dbClient, guildID) {
-  return dbClient.db().collection(`watchlist-${guildID}`);
-}
-
-async function getWatchedIDs(dbClient, guildID) {
-  return (await getWatchlist(dbClient, guildID).find().toArray()).map((c) => c._id);
-}
-
-module.exports = { checkFor, handleDbError, logChannelMessage, getWatchlist, getWatchedIDs }
+module.exports = { checkFor, handleDbError, logChannelMessage }

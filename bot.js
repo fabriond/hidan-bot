@@ -1,7 +1,8 @@
 const Config = require('./config');
 const client = Config.getDiscordClient();
 const mongoClient = Config.getMongoClient;
-const helpers = require('./helpers');
+const { getWatchlist } = require('./db/channels');
+const { checkFor, logChannelMessage, handleDbError } = require('./helpers');
 
 const COMMANDS = require('./commands');
 
@@ -9,14 +10,14 @@ client.on('message', (message) => {
   if(!message.author.bot) {    
     if(message.member.hasPermission('ADMINISTRATOR')) {
       try {
-        const content = helpers.checkFor(Config.prefix, message.content);
+        const content = checkFor(Config.prefix, message.content);
 
         if(content === null) return;
 
         for(const command in COMMANDS) {
           if(!COMMANDS.hasOwnProperty(command)) continue;
 
-          const params = helpers.checkFor(command, content);
+          const params = checkFor(command, content);
           if(params != null){
             return COMMANDS[command].call(null, message, params);
           }
@@ -31,11 +32,11 @@ client.on('message', (message) => {
 })
 
 async function switchState(dbClient, channel) {
-  const isChannelWatched = !!(await helpers.getWatchlist(dbClient, channel.guild.id).findOne({_id: channel.id}));
+  const isChannelWatched = !!(await getWatchlist(dbClient, channel.guild.id).findOne({_id: channel.id}));
 
   if(isChannelWatched) {
     if(channel.full) {
-      helpers.logChannelMessage(`${channel} is full, hiding it`)
+      logChannelMessage(`${channel} is full, hiding it`)
       channel.overwritePermissions([
         {
           id: channel.guild.roles.everyone,
@@ -43,7 +44,7 @@ async function switchState(dbClient, channel) {
         }
       ], 'Channel is full');
     } else {
-      helpers.logChannelMessage(`${channel} is not full, displaying it`)
+      logChannelMessage(`${channel} is not full, displaying it`)
       channel.overwritePermissions([
         {
           id: channel.guild.roles.everyone,
@@ -69,7 +70,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     if(checkNew) await switchState(dbClient, newChannel);
     if(checkOld && newChannel !== oldChannel) await switchState(dbClient, oldChannel);
   } catch(error) {
-    helpers.handleDbError(error);
+    handleDbError(error);
   } finally {
     if(dbClient) await dbClient.close();
   }

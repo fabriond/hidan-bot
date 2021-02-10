@@ -1,6 +1,14 @@
 const Config = require('../config');
 const mongoClient = Config.getMongoClient;
-const helpers = require('../helpers');
+const { handleDbError } = require('../helpers');
+
+function getWatchlist(dbClient, guildID) {
+  return dbClient.db().collection(`watchlist-${guildID}`);
+}
+
+async function getWatchedIDs(dbClient, guildID) {
+  return (await getWatchlist(dbClient, guildID).find().toArray()).map((c) => c._id);
+}
 
 async function index(message) {
 
@@ -9,7 +17,7 @@ async function index(message) {
   try {
     dbClient = await mongoClient().connect();
 
-    const channelsToWatch = await helpers.getWatchedIDs(dbClient, message.guild.id);
+    const channelsToWatch = await getWatchedIDs(dbClient, message.guild.id);
     console.log(channelsToWatch);
 
     if(channelsToWatch.length === 0) {
@@ -24,7 +32,7 @@ async function index(message) {
       message.channel.send(`Channels being watched: ${channels.filter((channel) => !!channel).join(", ")}`)
     }
   } catch(error) {
-    helpers.handleDbError(error, message.channel)
+    handleDbError(error, message.channel)
   } finally {
     if(dbClient) await dbClient.close();
   }
@@ -37,13 +45,13 @@ async function create(message, channel) {
   try {
     dbClient = await mongoClient().connect();
 
-    await helpers.getWatchlist(dbClient, message.guild.id).insertOne({
+    await getWatchlist(dbClient, message.guild.id).insertOne({
       _id: channel.id
     });
 
     message.channel.send(`Added channel ${channel.toString()} to the watch list`);
   } catch(error) {
-    helpers.handleDbError(error, message.channel)
+    handleDbError(error, message.channel)
   } finally {
     if(dbClient) await dbClient.close();
   }
@@ -56,16 +64,16 @@ async function destroy(message, channel) {
   try {
     dbClient = await mongoClient().connect();
 
-    await helpers.getWatchlist(dbClient, message.guild.id).deleteOne({
+    await getWatchlist(dbClient, message.guild.id).deleteOne({
       _id: channel.id
     })
       
     message.channel.send(`Removed channel ${channel.toString()} from the watch list`);
   } catch(error) {
-    helpers.handleDbError(error, message.channel);
+    handleDbError(error, message.channel);
   } finally {
     if(dbClient) await dbClient.close();
   }
 }
 
-module.exports = { index, create, destroy };
+module.exports = { index, create, destroy, getWatchlist };
