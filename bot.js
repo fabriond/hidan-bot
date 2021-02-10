@@ -83,7 +83,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 })
 
 client.on('ready', () => {
-  client.user.setActivity(`'${Config.prefix}'`, {
+  client.user.setActivity(`'${Config.getDefaultPrefix()}'`, {
     type: 'LISTENING'
   })
 })
