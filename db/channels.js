@@ -9,7 +9,7 @@ async function getWatchedIDs(dbClient, guildID) {
 }
 
 async function index(message) {
-  return await performOperation((dbClient) => {
+  return await performOperation(async (dbClient) => {
     const channelsToWatch = await getWatchedIDs(dbClient, message.guild.id);
     console.log(channelsToWatch);
 
@@ -28,7 +28,7 @@ async function index(message) {
 }
 
 async function create(message, channel) {
-  return await performOperation((dbClient) => {
+  return await performOperation(async (dbClient) => {
     await getWatchlist(dbClient, message.guild.id).insertOne({
       _id: channel.id
     });
@@ -38,7 +38,7 @@ async function create(message, channel) {
 }
 
 async function destroy(message, channel) {
-  return await performOperation((dbClient) => {
+  return await performOperation(async (dbClient) => {
     await getWatchlist(dbClient, message.guild.id).deleteOne({
       _id: channel.id
     })

@@ -5,7 +5,7 @@ function configsCollection(dbClient) {
 }
 
 async function getConfigs(message) {
-  return await performOperation((dbClient) => {
+  return await performOperation(async (dbClient) => {
     const configs = await configsCollection(dbClient).findOne({ _id: message.guild.id });
 
     return configs;
@@ -13,7 +13,7 @@ async function getConfigs(message) {
 }
 
 async function setConfigs(message, newConfigs) {
-  return await performOperation((dbClient) => {
+  return await performOperation(async (dbClient) => {
     const configs = await configsCollection(dbClient).findOne({ _id: message.guild.id });
 
     if(configs) {
