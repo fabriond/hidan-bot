@@ -1,6 +1,8 @@
-const { getWatchlist } = require('./db/channels');
+import { VoiceChannel } from 'discord.js';
+import { MongoClient } from 'mongodb';
+import { getWatchlist } from './db/channels';
 
-function checkFor(text, messageContent, throwError) {
+function checkFor(text: string, messageContent: string, throwError = false) {
   if(messageContent.startsWith(text)) {
     return messageContent.replace(text, '').trim();
   } else if(throwError) {
@@ -10,7 +12,7 @@ function checkFor(text, messageContent, throwError) {
   }
 }
 
-async function toggleChannelState(dbClient, channel) {
+async function toggleChannelState(dbClient: MongoClient, channel: VoiceChannel) {
   const isChannelWatched = !!(await getWatchlist(dbClient, channel.guild).findOne({_id: channel.id}));
 
   if(!isChannelWatched) return;
@@ -34,4 +36,4 @@ async function toggleChannelState(dbClient, channel) {
   }
 }
 
-module.exports = { checkFor, toggleChannelState }
+export { checkFor, toggleChannelState }

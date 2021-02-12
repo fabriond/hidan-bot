@@ -1,20 +1,21 @@
-const Config = require('../config');
-const { addChannel, removeChannel, listWatched } = require('./channels');
-const { setPrefix, resetPrefix } = require('./guild_config');
-const { getGuildConfigs } = require('../db/guild_config');
+import { Message } from 'discord.js';
+import { getDefaultPrefix } from '../config';
+import { getGuildConfigs } from '../db/guild_config';
+import { setPrefix, resetPrefix } from './guild_config';
+import { addChannel, removeChannel, listWatched } from './channels';
 
 class Command {
-  constructor(name, params, description) {
-    this._name = name;
-    this._params = params;
-    this._description = description;
+  readonly name: string;
+  readonly params: string;
+  readonly description: string;
+
+  constructor(name: string, params: string, description: string) {
+    this.name = name;
+    this.params = params;
+    this.description = description;
   }
 
-  get name() { return this._name }
-  get params() { return this._params }
-  get description() { return this._description }
-
-  getHelpMessage(prefix) {
+  getHelpMessage(prefix: string) {
     const commandParts = [prefix];
     if(this.name) commandParts.push(this.name);
     if(this.params) commandParts.push(this.params);
@@ -30,10 +31,10 @@ const CHANGE_PREFIX = new Command('set prefix', '<new_prefix>', "changes the ser
 const RESET_PREFIX = new Command('reset prefix', '', "removes server prefix, so that only the default prefix is recognized");
 const DISPLAY_HELP = new Command('help', '', "displays the list of commands");
 
-async function sendHelpMessage(message) {
-  const configs = await getGuildConfigs(message.guild);
-  const defaultPrefix = Config.getDefaultPrefix();
-  const prefix = configs ? configs.prefix || defaultPrefix : defaultPrefix;
+async function sendHelpMessage(message: Message) {
+  const configs = await getGuildConfigs(message);
+  const defaultPrefix = getDefaultPrefix();
+  const prefix = configs?.prefix || defaultPrefix;
 
   message.channel.send(
     `List of commands: \n`
@@ -46,7 +47,7 @@ async function sendHelpMessage(message) {
   )
 }
 
-module.exports = {
+export default {
   [ADD_CHANNEL.name]: addChannel,
   [REMOVE_CHANNEL.name]: removeChannel,
   [LIST_CHANNELS.name]: listWatched,

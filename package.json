@@ -4,7 +4,9 @@
   "description": "Hidan bot watches over discord voice channels (specifically set by the server's admins) and hides them (by making them private) when they're full, but visible otherwise",
   "main": "src",
   "scripts": {
-    "start": "node src"
+    "start": "node dist",
+    "postinstall": "tsc",
+    "dev": "ts-node src"
   },
   "keywords": [
     "discord",
@@ -14,7 +16,12 @@
   "author": "Fabriond",
   "license": "ISC",
   "dependencies": {
+    "@types/mongodb": "^3.6.7",
     "discord.js": "^12.5.1",
     "mongodb": "^3.6.3"
+  },
+  "devDependencies": {
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.5"
   }
 }
