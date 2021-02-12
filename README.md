@@ -11,4 +11,3 @@ Hidan bot uses the "Hidan," prefix by default, but prefixes can be changed using
 - set prefix <new_prefix> - changes the server prefix (the default prefix always works regardless of the server prefix)
 - reset prefix - removes server prefix, so that only the default prefix is recognized
 - help - displays the list of commands
-
