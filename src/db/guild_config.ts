@@ -33,8 +33,6 @@ async function setGuildConfigs(message: Message, newConfigs: GuildConfigs) {
       );
     }
 
-
-
     for(const config of Object.keys(newConfigs) as Array<keyof GuildConfigs>) {
       if(!newConfigs.hasOwnProperty(config)) continue;
       message.channel.send(`Set ${config} to: \`${newConfigs[config]}\``);
